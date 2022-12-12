@@ -2,11 +2,15 @@
 <!DOCTYPE html>
 <html>
 <body>
-    <h3>Name:</h3>
-    <span>{{.Name}}</span><br/>
+    <h3>Theres a spot available</h3>
+    <span>Hey {{.Name}}, These sport are available to register in.</span><br/>
     <br/>
-    <h3>Email:</h3>
-    <span>{{.Message}}</span>
+    <h3>Courses:</h3>
+    {{range .Courses}}
+    <tr>
+        <td>{{ . }}</td>
+    </tr>
+    {{ end }}
     <br/>
 </body>
 </html>

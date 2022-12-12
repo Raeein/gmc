@@ -1,16 +1,17 @@
 package config
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"log"
 )
 
 type Config struct {
 	Smtp struct {
-		Host     string
-		Port     int
-		From     string
-		Password string
+		Host     string `yaml:"host"`
+		Port     int    `yaml:"port"`
+		From     string `yaml:"from"`
+		Password string `yaml:"password"`
 	}
 }
 
@@ -30,5 +31,6 @@ func Read() Config {
 	if err := viper.Unmarshal(&config); err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println(config)
 	return config
 }

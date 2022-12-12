@@ -9,7 +9,6 @@ import (
 func main() {
 	cfg := config.Read()
 	u := gmc.User{"test@aol.com", "Raeein"}
-	email.Send(u, cfg.Smtp.Host, cfg.Smtp.Port, cfg.Smtp.From, cfg.Smtp.Password)
+	email.Send(u, []string{"Java", "Python"}, cfg.Smtp.Host, cfg.Smtp.Port, cfg.Smtp.From, cfg.Smtp.Password)
 	//p := &gmc.User{"jason@me.com", "hi"}
-
 }
