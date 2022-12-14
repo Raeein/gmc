@@ -1,2 +1,8 @@
-server:
-  port: 80
+Smtp:
+  Host: HOST
+  Port: PORT
+  From: FROM_EMAIL
+  Password: FROM_EMAIL_PASSWORD
+Mongo:
+  username: USERNAME
+  password: PASSWORD

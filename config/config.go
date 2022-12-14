@@ -12,7 +12,13 @@ type Config struct {
 		Port     int    `yaml:"port"`
 		From     string `yaml:"from"`
 		Password string `yaml:"password"`
-	}
+	} `yaml:"Smtp"`
+	Mongo struct {
+		Username   string `yaml:"username"`
+		Password   string `yaml:"password"`
+		Database   string `yaml:"database"`
+		Collection string `yaml:"collection"`
+	} `yaml:"Mongo"`
 }
 
 func Read() Config {
