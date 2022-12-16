@@ -4,13 +4,28 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"text/template"
 )
 
 func Start() {
+
+	fs := http.FileServer(http.Dir("static"))
+	http.HandleFunc("/", home)
+	http.HandleFunc("/home", home)
 	http.HandleFunc("/ping", ping)
 	http.HandleFunc("/register", register)
-	fmt.Println("Visit localhost:8080")
-	http.ListenAndServe("localhost:8080", nil)
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	log.Println("Visit localhost:8080")
+	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+}
+
+func home(rw http.ResponseWriter, r *http.Request) {
+	tpl := template.Must(template.ParseFiles("static/templates/index.gohtml"))
+	err := tpl.Execute(rw, nil)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func ping(rw http.ResponseWriter, r *http.Request) {

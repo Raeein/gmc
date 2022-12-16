@@ -23,8 +23,8 @@ type Config struct {
 
 func Read() Config {
 	viper.AddConfigPath(".")
-	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
+	viper.SetConfigName("config")
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {

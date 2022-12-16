@@ -6,3 +6,5 @@ Smtp:
 Mongo:
   username: USERNAME
   password: PASSWORD
+  database: DB
+  collection: COLLECTION

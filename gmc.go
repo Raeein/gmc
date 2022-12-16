@@ -10,6 +10,7 @@ type Course struct {
 
 type User struct {
 	Email string `json:"email"`
+	Name  string `json:"name"`
 }
 
 func (c Course) String() string {
