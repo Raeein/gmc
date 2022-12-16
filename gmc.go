@@ -2,21 +2,16 @@ package gmc
 
 import "fmt"
 
-type Sender struct {
-	Email    string
-	Password string
+type Course struct {
+	Year    string `json:"year"`
+	Section string `json:"section"`
+	ID      string `json:"id"`
 }
 
 type User struct {
-	Email string
-	Name  string
+	Email string `json:"email"`
 }
 
-func (u *User) String() string {
-	return fmt.Sprintf("%s: %s\n", u.Email, u.Name)
-}
-
-type EmailServer struct {
-	SmtpHost string
-	SmtpPort string
+func (c Course) String() string {
+	return fmt.Sprintf("%s, %s, %s\n", c.Year, c.Section, c.ID)
 }
