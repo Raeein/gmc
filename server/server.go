@@ -7,7 +7,7 @@ import (
 	"text/template"
 )
 
-func Start() {
+func Start(port string) {
 
 	fs := http.FileServer(http.Dir("static"))
 	http.HandleFunc("/", home)
@@ -16,8 +16,8 @@ func Start() {
 	http.HandleFunc("/register", register)
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	log.Println("Visit localhost:8080")
-	log.Fatal(http.ListenAndServe("localhost:8080", nil))
+	log.Printf("Visit localhost:%s", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
 
 func home(rw http.ResponseWriter, r *http.Request) {

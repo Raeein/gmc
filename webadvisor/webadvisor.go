@@ -13,10 +13,10 @@ import (
 
 type coursesResponse struct {
 	courses []struct {
-		sectionID   []string `json:"MatchingSectionIds"`
-		id          string   `json:"Id"`
-		subjectCode string   `json:"SubjectCode"`
-		number      string   `json:"Number"`
+		SectionID   []string `json:"MatchingSectionIds"`
+		ID          string   `json:"Id"`
+		SubjectCode string   `json:"SubjectCode"`
+		Number      string   `json:"Number"`
 	}
 }
 

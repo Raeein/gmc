@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"github.com/Raeein/gmc/config"
+	"github.com/Raeein/gmc/server"
 )
 
 func main() {
 	cfg := config.Read()
-	fmt.Println(cfg)
 	//mc := mongodb.New(
 	//	cfg.Mongo.Username,
 	//	cfg.Mongo.Password,
@@ -16,7 +15,7 @@ func main() {
 	//)
 	//mc.Log("Info", "test log entry")
 	//defer mc.Close()
-	//server.Start()
+	server.Start(cfg.Server.Port)
 	//fmt.Println("Server is running")
 	//u := gmc.User{"raeein@aol.com", "Raeein"}
 	//email.Send(u, []string{"Java", "Python"}, cfg.Smtp.Host, cfg.Smtp.Port, cfg.Smtp.From, cfg.Smtp.Password)

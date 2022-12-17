@@ -9,9 +9,12 @@ import (
 )
 
 type Config struct {
+	Server struct {
+		Port string
+	}
 	Smtp struct {
 		Host     string `yaml:"host"`
-		Port     int    `yaml:"port"`
+		Port     string `yaml:"port"`
 		From     string `yaml:"from"`
 		Password string `yaml:"password"`
 	} `yaml:"Smtp"`
@@ -60,7 +63,7 @@ func getConfigName() string {
 }
 
 func verify(c Config) {
-	if c.Smtp.Host == "" || c.Smtp.Port == 0 || c.Smtp.From == "" || c.Smtp.Password == "" ||
+	if c.Server.Port == "" || c.Smtp.Host == "" || c.Smtp.Port == "" || c.Smtp.From == "" || c.Smtp.Password == "" ||
 		c.Mongo.Username == "" || c.Mongo.Password == "" || c.Mongo.Database == "" || c.Mongo.Collection == "" {
 		log.Fatal("Required config values are missing")
 	}
