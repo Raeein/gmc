@@ -11,7 +11,7 @@ RUN go build -o /app/gmc cmd/gmc/main.go
 # Run stage
 FROM alpine:3.17
 WORKDIR /app
-COPY --from=builder /app/gmc .
+COPY --from=builder /app/ .
 
 EXPOSE 8080
 
