@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"log"
+	"os"
+	"strings"
 )
 
 type Config struct {
@@ -24,8 +26,9 @@ type Config struct {
 func Read() Config {
 	viper.AddConfigPath(".")
 	viper.SetConfigType("yaml")
-	viper.SetConfigName("config")
-
+	viper.SetConfigName(getConfigName())
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			log.Fatal(err)
@@ -37,6 +40,28 @@ func Read() Config {
 	if err := viper.Unmarshal(&config); err != nil {
 		log.Fatal(err)
 	}
+	verify(config)
 	fmt.Println(config)
 	return config
+}
+
+// sample_config is used for deployment to google cloud. It is not used in development.
+func getConfigName() string {
+	fn := "config.yaml"
+	_, err := os.Stat(fn)
+	if err != nil {
+		log.Println(err)
+		log.Println("Using sample_config.yaml")
+		return "sample_config.yaml"
+	}
+	log.Println("Running in development mode")
+
+	return fn
+}
+
+func verify(c Config) {
+	if c.Smtp.Host == "" || c.Smtp.Port == 0 || c.Smtp.From == "" || c.Smtp.Password == "" ||
+		c.Mongo.Username == "" || c.Mongo.Password == "" || c.Mongo.Database == "" || c.Mongo.Collection == "" {
+		log.Fatal("Required config values are missing")
+	}
 }
