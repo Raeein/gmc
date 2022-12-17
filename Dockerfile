@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:latest AS builder
+FROM golang:1.19-alpine3.17 AS builder
 
 RUN mkdir /app
 WORKDIR /app
@@ -9,7 +9,7 @@ RUN go mod download
 RUN go build -o /app/gmc cmd/gmc/main.go
 
 # Run stage
-FROM alpine:latest
+FROM alpine:3.17
 WORKDIR /app
 COPY --from=builder /app/gmc .
 
