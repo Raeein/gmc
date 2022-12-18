@@ -33,21 +33,30 @@ func New() WebAdvisor {
 	return WebAdvisor{client: client}
 }
 
-func (s WebAdvisor) CheckCourse() {
-	token, err := s.getToken()
+func (w *WebAdvisor) CheckCourse() {
+	token, err := w.getToken()
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	getSections(token)
+	fmt.Println(token)
+	//w.updateCookies()
+	w.getSections(token)
 }
 
-func (s WebAdvisor) getToken() (string, error) {
+//func (w *WebAdvisor) updateCookies() {
+//	for _, cookie := range w.cookies {
+//		w.client.Jar.SetCookies(cookie.Domain, w.cookies)
+//	}
+//
+//}
+
+func (w *WebAdvisor) getToken() (string, error) {
 
 	const url = "https://colleague-ss.uoguelph.ca/Student/Courses"
 	req, _ := http.NewRequest("GET", url, nil)
 
-	res, err := s.client.Do(req)
+	res, err := w.client.Do(req)
 	if err != nil {
 		fmt.Println(err)
 		return "", err
@@ -55,15 +64,15 @@ func (s WebAdvisor) getToken() (string, error) {
 	defer res.Body.Close()
 	fmt.Println(res.StatusCode)
 
-	s.cookies = res.Cookies()
-	token := s.extractToken(res.Body)
+	w.cookies = res.Cookies()
+	token := w.extractToken(res.Body)
 	if token == "" {
-		return "", fmt.Errorf("No token found")
+		return "", fmt.Errorf("no token found")
 	}
 	return token, nil
 }
 
-func (s WebAdvisor) extractToken(rb io.Reader) string {
+func (w *WebAdvisor) extractToken(rb io.Reader) string {
 	data, _ := io.ReadAll(rb)
 	// Yes regex is hard.
 	r, _ := regexp.Compile(`<input name="__RequestVerificationToken" type="hidden" value="[^"]*" />`)
@@ -77,7 +86,7 @@ func (s WebAdvisor) extractToken(rb io.Reader) string {
 	return token
 }
 
-func getSections(token string) {
+func (w *WebAdvisor) getSections(token string) {
 	postUrl := "https://colleague-ss.uoguelph.ca/Student/Student/Courses/SearchAsync"
 	data := bytes.NewBufferString(`{"searchParameters":"{\"keyword\":\"cis2500\",\"terms\":[],\"requirement\":null,\"subrequirement\":null,\"courseIds\":null,\"sectionIds\":null,\"requirementText\":null,\"subrequirementText\":\"\",\"group\":null,\"startTime\":null,\"endTime\":null,\"openSections\":null,\"subjects\":[],\"academicLevels\":[],\"courseLevels\":[],\"synonyms\":[],\"courseTypes\":[],\"topicCodes\":[],\"days\":[],\"locations\":[],\"faculty\":[],\"onlineCategories\":null,\"keywordComponents\":[],\"startDate\":null,\"endDate\":null,\"startsAtTime\":null,\"endsByTime\":null,\"pageNumber\":1,\"sortOn\":\"None\",\"sortDirection\":\"Ascending\",\"subjectsBadge\":[],\"locationsBadge\":[],\"termFiltersBadge\":[],\"daysBadge\":[],\"facultyBadge\":[],\"academicLevelsBadge\":[],\"courseLevelsBadge\":[],\"courseTypesBadge\":[],\"topicCodesBadge\":[],\"onlineCategoriesBadge\":[],\"openSectionsBadge\":\"\",\"openAndWaitlistedSectionsBadge\":\"\",\"subRequirementText\":null,\"quantityPerPage\":30,\"openAndWaitlistedSections\":null,\"searchResultsView\":\"CatalogListing\"}"}`)
 	req, err := http.NewRequest("POST", postUrl, data)
@@ -88,9 +97,14 @@ func getSections(token string) {
 	req.Header.Set("X-Requested-With", "XMLHttpRequest")
 	req.Header.Set("Accept", "application/json, text/javascript, */*; q=0.01")
 	req.Header.Set("__RequestVerificationToken", token)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	//w.client.Jar.SetCookies(req.URL, w.cookies)
+	// Get cookie values from the req
+	for _, cookie := range w.cookies {
+		fmt.Println("Cookie", cookie.Name)
+		fmt.Println("Domain", cookie.Value)
+		req.AddCookie(&http.Cookie{Name: cookie.Name, Value: cookie.Value})
+	}
+	resp, err := w.client.Do(req)
 	if err != nil {
 		log.Println(err)
 	}
@@ -102,9 +116,5 @@ func getSections(token string) {
 		log.Println(err)
 	}
 	bodyString := string(bodyBytes)
-	log.Println(bodyString)
+	log.Println(bodyString[:500])
 }
-
-//for _, cookie := range res.Cookies() {
-//	fmt.Println("Found a cookie named:", cookie.Name)
-//}
