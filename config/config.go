@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/spf13/viper"
 	"log"
 	"os"
@@ -44,7 +43,6 @@ func Read() Config {
 		log.Fatal(err)
 	}
 	verify(config)
-	fmt.Println(config)
 	return config
 }
 

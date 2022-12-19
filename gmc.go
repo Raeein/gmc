@@ -1,18 +1,32 @@
 package gmc
 
-import "fmt"
-
-type Course struct {
-	Year    string `json:"year"`
-	Section string `json:"section"`
-	ID      string `json:"id"`
-}
+import (
+	"errors"
+)
 
 type User struct {
-	Email string `json:"email"`
 	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
-func (c Course) String() string {
-	return fmt.Sprintf("%s, %s, %s\n", c.Year, c.Section, c.ID)
+type Section struct {
+	Course Course `json:"course"`
+	Code   string `json:"code"`
+	Term   string `json:"term"`
+}
+
+type Course struct {
+	Department string `json:"department"`
+	Code       int    `json:"code"`
+}
+
+func (c Course) Valid() error {
+	if c.Department == "" {
+		return errors.New("department cannot be empty")
+	}
+	if c.Code <= 999 && c.Code >= 9999 {
+		return errors.New("course code must be 4 digits")
+	}
+
+	return nil
 }

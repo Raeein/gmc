@@ -3,7 +3,6 @@ package mongodb
 import (
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -14,6 +13,12 @@ type Logger struct {
 	Client     *mongo.Client
 	DB         string
 	Collection string
+}
+
+type Log struct {
+	Title       string `bson:"title"`
+	Description string `bson:"description"`
+	Time        string `bson:"time"`
 }
 
 const timeout = 10 * time.Second
@@ -43,11 +48,11 @@ func (l Logger) Log(title, description string) {
 
 	location, _ := time.LoadLocation("EST")
 	currentTime := time.Now().In(location).Format("2006-01-02 15:04:05")
-
-	doc := bson.D{
-		{"Title", title},
-		{"Description", description},
-		{"Time", currentTime},
+	// Check if bson works
+	doc := Log{
+		Title:       title,
+		Description: description,
+		Time:        currentTime,
 	}
 	collection := l.Client.Database(l.DB).Collection(l.Collection)
 	res, err := collection.InsertOne(ctx, doc)
