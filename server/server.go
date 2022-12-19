@@ -1,35 +1,62 @@
 package server
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/Raeein/gmc/mongodb"
 	"github.com/Raeein/gmc/webadvisor"
 	"log"
 	"net/http"
 	"text/template"
+	"time"
 )
 
-type Server struct {
-	port              string
+type Service struct {
+	server            *http.Server
 	webadvisorService webadvisor.WebAdvisor
 	mongoService      mongodb.Logger
 }
 
-func New(port string, wa webadvisor.WebAdvisor, ms mongodb.Logger) Server {
-	return Server{port: port, webadvisorService: wa, mongoService: ms}
+func New(port string, wa webadvisor.WebAdvisor, ms mongodb.Logger) Service {
+	localPort := fmt.Sprintf(":%s", port)
+	return Service{
+		server:            &http.Server{Addr: localPort},
+		webadvisorService: wa,
+		mongoService:      ms,
+	}
 }
 
-func (s Server) Start(port string) {
+func (s Service) Start(ctx context.Context, port string) {
 
 	fs := http.FileServer(http.Dir("static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
 	http.HandleFunc("/", home)
 	http.HandleFunc("/home", home)
 	http.HandleFunc("/ping", ping)
 	http.HandleFunc("/register", s.register)
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	log.Printf("Visit localhost:%s", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
+	errChan := make(chan error)
+	go func() {
+		log.Printf("Visit localhost:%s", port)
+		err := s.server.ListenAndServe()
+		errChan <- err
+	}()
+
+	select {
+	case err := <-errChan:
+		if !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	case <-ctx.Done():
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := s.server.Shutdown(ctx); err != nil {
+			log.Fatal("server shutdown error: %w", err)
+		}
+		log.Println("server shutdown complete")
+	}
 }
 
 func home(rw http.ResponseWriter, r *http.Request) {
@@ -47,7 +74,7 @@ func ping(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s Server) register(rw http.ResponseWriter, r *http.Request) {
+func (s Service) register(rw http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	switch r.Method {

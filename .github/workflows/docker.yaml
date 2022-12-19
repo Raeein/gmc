@@ -1,4 +1,4 @@
-name: Docker Hub CD
+name: Push To Docker Hub
 on:
   push:
     branches:
@@ -6,14 +6,15 @@ on:
   pull_request:
     branches:
     - main
+permissions:
+  contents: read
 
 jobs:
-  build:
+  push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
-      - name: Build and Publish to Docker Hub
+      - name: Build and Push to Docker Hub
         uses: mr-smithers-excellent/docker-build-push@v4
         with:
           image: ${{ secrets.GMC_DOCKER_REPO }}

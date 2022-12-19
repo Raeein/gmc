@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/spf13/viper"
 	"log"
 	"os"
@@ -12,17 +13,23 @@ type Config struct {
 		Port string
 	}
 	Smtp struct {
-		Host     string `yaml:"host"`
-		Port     string `yaml:"port"`
-		From     string `yaml:"from"`
-		Password string `yaml:"password"`
-	} `yaml:"Smtp"`
+		Host     string
+		Port     string
+		From     string
+		Password string
+	}
 	Mongo struct {
-		Username   string `yaml:"username"`
-		Password   string `yaml:"password"`
-		Database   string `yaml:"database"`
-		Collection string `yaml:"collection"`
-	} `yaml:"Mongo"`
+		Username   string
+		Password   string
+		Database   string
+		Collection string
+	}
+	Firestore struct {
+		ProjectID            string
+		SectionsCollectionID string
+		UsersCollectionID    string
+		CredentialsPath      string
+	}
 }
 
 func Read() Config {
@@ -62,7 +69,9 @@ func getConfigName() string {
 
 func verify(c Config) {
 	if c.Server.Port == "" || c.Smtp.Host == "" || c.Smtp.Port == "" || c.Smtp.From == "" || c.Smtp.Password == "" ||
-		c.Mongo.Username == "" || c.Mongo.Password == "" || c.Mongo.Database == "" || c.Mongo.Collection == "" {
-		log.Fatal("Required config values are missing")
+		c.Mongo.Username == "" || c.Mongo.Password == "" || c.Mongo.Database == "" || c.Mongo.Collection == "" ||
+		c.Firestore.ProjectID == "" || c.Firestore.SectionsCollectionID == "" || c.Firestore.UsersCollectionID == "" {
+		fmt.Println(c.Firestore)
+		log.Fatal("required config values are missing")
 	}
 }

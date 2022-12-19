@@ -10,3 +10,8 @@ Mongo:
   password: PASSWORD
   database: DB
   collection: COLLECTION
+Firestore:
+  projectID: PROJECT_ID
+  sectionsCollectionID: SECTIONS_COLLECTION_ID
+  usersCollectionID: USERS_COLLECTION_ID
+  credentialsPath: PATH_TO_CREDENTIALS
