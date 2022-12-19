@@ -1,19 +1,29 @@
-project_name: gmc
-before:
-  hooks:
-    - go mod tidy
-    - go mod download
-
 builds:
-  - dir: .
-  - main: ./cmd/gmc/main.go
-  - env:
-    - CGO_ENABLED=0
+  - id: linux-amd64
+    binary: kink-linux-{{ .Arch }}
+    main: ./cmd/gmc/main.go
     goos:
       - linux
-      - windows
+    goarch:
+      - amd64
+    no_unique_dist_dir: true
+
+  - id: darwin-amd64
+    binary: kink-darwin-{{ .Arch }}
+    main: ./cmd/gmc/main.go
+    goos:
       - darwin
     goarch:
       - amd64
-      - arm64
-    binary: gmc
+    no_unique_dist_dir: true
+
+  - id: windows-amd64
+    binary: kink-windows-{{ .Arch }}
+    main:  ./cmd/gmc/main.go
+    goos:
+      - windows
+    goarch:
+      - amd64
+    ldflags:
+      - -buildmode=exe
+    no_unique_dist_dir: true
