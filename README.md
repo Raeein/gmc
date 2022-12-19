@@ -1,4 +1,4 @@
-Run the Dockerfile with
+Run the docker image with
 ```
 docker run -p 8080:8080 --name delete --rm \
       -e SMTP_HOST=XXXX \
