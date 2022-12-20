@@ -2,15 +2,13 @@
 <!DOCTYPE html>
 <html>
 <body>
-    <h3>Theres a spot available</h3>
+    <h3>Theres a spot available to register</h3>
     <span>Hey {{.Name}}, These sport are available to register in.</span><br/>
     <br/>
     <h3>Courses:</h3>
-    {{range .Courses}}
-    <tr>
-        <td>{{ . }}</td>
-    </tr>
-    {{ end }}
+    <p>
+        {{ .Section.Course.Department }},{{ .Section.Course.Code  }}, {{ .Section.Code  }}, {{ .Section.Term }}
+    </p>
     <br/>
 </body>
 </html>

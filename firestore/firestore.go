@@ -29,14 +29,15 @@ func New(ctx context.Context, projectID, sectionsCollectionID, usersCollectionID
 	return Service{client, sectionsCollectionID, usersCollectionID}, nil
 }
 
-func (f Service) AddWatcher(ctx context.Context, section gmc.Section, watcher gmc.User) error {
-	// Steps:
-	// 1. Retrieve the section document, creating it if it doesn't exist
-	// 2. Inspect the current watchers. If the new watcher is already a watcher, stop and return a nil error
-	// 3. Append the new watcher to the watchers array
-	// 4. Update the document in the collection
+func (f Service) AddWatcher(ctx context.Context, section gmc.Section, user gmc.User) error {
 
-	documents, err := f.firestore.Collection(f.sectionsCollectionID).Where("Code", "==", section.Code).Where("Term", "==", section.Term).Where("Course.Code", "==", section.Course.Code).Where("Course.Department", "==", section.Course.Department).Documents(ctx).GetAll()
+	documents, err := f.firestore.Collection(f.sectionsCollectionID).
+		Where("Code", "==", section.Code).
+		Where("Term", "==", section.Term).
+		Where("Course.Code", "==", section.Course.Code).
+		Where("Course.Department", "==", section.Course.Department).
+		Documents(ctx).GetAll()
+
 	if err != nil {
 		return fmt.Errorf("failed to get matching section documents: %w", err)
 	}
@@ -56,7 +57,10 @@ func (f Service) AddWatcher(ctx context.Context, section gmc.Section, watcher gm
 		sectionID = documents[0].Ref.ID
 	}
 
-	documents, err = f.firestore.Collection(f.usersCollectionID).Where("SectionID", "==", sectionID).Documents(ctx).GetAll()
+	documents, err = f.firestore.Collection(f.usersCollectionID).
+		Where("SectionID", "==", sectionID).
+		Documents(ctx).GetAll()
+
 	if err != nil {
 		return fmt.Errorf("failed to get matching watcher documents: %w", err)
 	}
@@ -68,13 +72,16 @@ func (f Service) AddWatcher(ctx context.Context, section gmc.Section, watcher gm
 			return fmt.Errorf("failed to deserialize watcher: %w", err)
 		}
 
-		if firestoreWatcher.User.Email == watcher.Email {
+		if firestoreWatcher.User.Email == user.Email {
 			// Service already watching this section, nothing to do
 			return nil
 		}
 	}
 
-	newWatcher := UserEntry{User: watcher, SectionID: sectionID}
+	newWatcher := UserEntry{
+		User:      user,
+		SectionID: sectionID,
+	}
 	_, _, err = f.firestore.Collection(f.usersCollectionID).Add(ctx, newWatcher)
 	if err != nil {
 		return fmt.Errorf("failed to write new watcher to collection: %w", err)
@@ -83,7 +90,7 @@ func (f Service) AddWatcher(ctx context.Context, section gmc.Section, watcher gm
 	return nil
 }
 
-func (f Service) GetWatchedSections(ctx context.Context) ([]gmc.Section, error) {
+func (f Service) GetUserSections(ctx context.Context) ([]gmc.Section, error) {
 	documents, err := f.firestore.Collection(f.sectionsCollectionID).Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all documents in sections collection: %w", err)
@@ -96,20 +103,24 @@ func (f Service) GetWatchedSections(ctx context.Context) ([]gmc.Section, error) 
 		if err != nil {
 			return nil, fmt.Errorf("failed to deserialize document: %w", err)
 		}
-
 		results = append(results, result)
 	}
 
 	return results, nil
 }
 
-func (f Service) GetWatchers(ctx context.Context, section gmc.Section) ([]gmc.User, error) {
-	documents, err := f.firestore.Collection(f.sectionsCollectionID).Where("Code", "==", section.Code).Where("Term", "==", section.Term).Where("Course.Code", "==", section.Course.Code).Where("Course.Department", "==", section.Course.Department).Documents(ctx).GetAll()
+func (f Service) GetUsers(ctx context.Context, section gmc.Section) ([]gmc.User, error) {
+	documents, err := f.firestore.Collection(f.sectionsCollectionID).
+		Where("Code", "==", section.Code).
+		Where("Term", "==", section.Term).
+		Where("Course.Code", "==", section.Course.Code).
+		Where("Course.Department", "==", section.Course.Department).
+		Documents(ctx).GetAll()
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get matching section documents: %w", err)
 	}
 
-	// sanity check, we should never have more than one matching document
 	if len(documents) > 1 {
 		return nil, errors.New("more than one matching document found, expected 0 or 1")
 	}
@@ -120,7 +131,9 @@ func (f Service) GetWatchers(ctx context.Context, section gmc.Section) ([]gmc.Us
 
 	sectionID := documents[0].Ref.ID
 
-	documents, err = f.firestore.Collection(f.usersCollectionID).Where("SectionID", "==", sectionID).Documents(ctx).GetAll()
+	documents, err = f.firestore.Collection(f.usersCollectionID).
+		Where("SectionID", "==", sectionID).
+		Documents(ctx).GetAll()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get matching watcher documents: %w", err)
 	}
@@ -139,8 +152,14 @@ func (f Service) GetWatchers(ctx context.Context, section gmc.Section) ([]gmc.Us
 	return results, nil
 }
 
-func (f Service) RemoveWatchers(ctx context.Context, section gmc.Section) error {
-	documents, err := f.firestore.Collection(f.sectionsCollectionID).Where("Code", "==", section.Code).Where("Term", "==", section.Term).Where("Course.Code", "==", section.Course.Code).Where("Course.Department", "==", section.Course.Department).Documents(ctx).GetAll()
+func (f Service) RemoveUsers(ctx context.Context, section gmc.Section) error {
+	documents, err := f.firestore.Collection(f.sectionsCollectionID).
+		Where("Code", "==", section.Code).
+		Where("Term", "==", section.Term).
+		Where("Course.Code", "==", section.Course.Code).
+		Where("Course.Department", "==", section.Course.Department).
+		Documents(ctx).GetAll()
+
 	if err != nil {
 		return fmt.Errorf("failed to get matching section documents: %w", err)
 	}
@@ -160,7 +179,9 @@ func (f Service) RemoveWatchers(ctx context.Context, section gmc.Section) error 
 		return fmt.Errorf("failed to delete section: %w", err)
 	}
 
-	documents, err = f.firestore.Collection(f.usersCollectionID).Where("SectionID", "==", sectionID).Documents(ctx).GetAll()
+	documents, err = f.firestore.Collection(f.usersCollectionID).
+		Where("SectionID", "==", sectionID).
+		Documents(ctx).GetAll()
 	if err != nil {
 		return fmt.Errorf("failed to get matching watcher documents: %w", err)
 	}

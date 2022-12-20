@@ -2,6 +2,7 @@ package webadvisor
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/Raeein/gmc"
@@ -52,10 +53,10 @@ func New() WebAdvisor {
 	return WebAdvisor{client: client}
 }
 
-func (w *WebAdvisor) getToken() (string, error) {
+func (w *WebAdvisor) getToken(ctx context.Context) (string, error) {
 
 	const url = "https://colleague-ss.uoguelph.ca/Student/Courses"
-	req, _ := http.NewRequest("GET", url, nil)
+	req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
 
 	res, err := w.client.Do(req)
 	if err != nil {
@@ -85,19 +86,19 @@ func (w *WebAdvisor) extractToken(rb io.Reader) string {
 	return token
 }
 
-func (w *WebAdvisor) Exists(section gmc.Section) error {
+func (w *WebAdvisor) Exists(ctx context.Context, section gmc.Section) error {
 
-	token, err := w.getToken()
+	token, err := w.getToken(ctx)
 	if err != nil {
 		return err
 	}
 
-	courseID, sectionIDs, err := w.searchCourses(token, section)
+	courseID, sectionIDs, err := w.searchCourses(ctx, token, section)
 	if err != nil {
 		return fmt.Errorf("failed to search for course: %w", err)
 	}
 
-	webAdvisorSections, err := w.listSections(token, courseID, sectionIDs)
+	webAdvisorSections, err := w.listSections(ctx, token, courseID, sectionIDs)
 	if err != nil {
 		return fmt.Errorf("failed to list sections: %w", err)
 	}
@@ -111,11 +112,11 @@ func (w *WebAdvisor) Exists(section gmc.Section) error {
 	return nil
 }
 
-func (w *WebAdvisor) searchCourses(token string, section gmc.Section) (string, []string, error) {
+func (w *WebAdvisor) searchCourses(ctx context.Context, token string, section gmc.Section) (string, []string, error) {
 
-	postUrl := "https://colleague-ss.uoguelph.ca/Student/Courses/SearchAsync"
+	const url = "https://colleague-ss.uoguelph.ca/Student/Courses/SearchAsync"
 	data := bytes.NewBufferString(fmt.Sprintf(`{"searchParameters":"{\"keyword\":null,\"terms\":[],\"requirement\":null,\"subrequirement\":null,\"courseIds\":null,\"sectionIds\":null,\"requirementText\":null,\"subrequirementText\":\"\",\"group\":null,\"startTime\":null,\"endTime\":null,\"openSections\":null,\"subjects\":[\"%s\"],\"academicLevels\":[],\"courseLevels\":[],\"synonyms\":[],\"courseTypes\":[],\"topicCodes\":[],\"days\":[],\"locations\":[],\"faculty\":[],\"onlineCategories\":null,\"keywordComponents\":[],\"startDate\":null,\"endDate\":null,\"startsAtTime\":null,\"endsByTime\":null,\"pageNumber\":1,\"sortOn\":\"None\",\"sortDirection\":\"Ascending\",\"subjectsBadge\":[],\"locationsBadge\":[],\"termFiltersBadge\":[],\"daysBadge\":[],\"facultyBadge\":[],\"academicLevelsBadge\":[],\"courseLevelsBadge\":[],\"courseTypesBadge\":[],\"topicCodesBadge\":[],\"onlineCategoriesBadge\":[],\"openSectionsBadge\":\"\",\"openAndWaitlistedSectionsBadge\":\"\",\"subRequirementText\":null,\"quantityPerPage\":500,\"openAndWaitlistedSections\":null,\"searchResultsView\":\"CatalogListing\"}"}`, section.Course.Department))
-	req, err := http.NewRequest("POST", postUrl, data)
+	req, err := http.NewRequestWithContext(ctx, "POST", url, data)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -147,9 +148,14 @@ func (w *WebAdvisor) searchCourses(token string, section gmc.Section) (string, [
 	return "", nil, fmt.Errorf("%s*%d*%s*%s not found", section.Course.Department, section.Course.Code, section.Term, section.Code)
 }
 
-func (w *WebAdvisor) listSections(token, courseId string, sectionIds []string) ([]WebAdvisorSection, error) {
+func (w *WebAdvisor) listSections(ctx context.Context, token, courseId string, sectionIds []string) ([]WebAdvisorSection, error) {
+	const url = "https://colleague-ss.uoguelph.ca/Student/Courses/SectionsAsync"
 	data := bytes.NewBufferString(fmt.Sprintf(`{"courseId":"%s","sectionIds":%s}`+"\n", courseId, "[\""+strings.Join(sectionIds, "\",\"")+"\"]"))
-	req, err := http.NewRequest("POST", "https://colleague-ss.uoguelph.ca/Student/Courses/SectionsAsync", data)
+	req, err := http.NewRequestWithContext(ctx,
+		"POST",
+		url,
+		data,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -176,4 +182,29 @@ func (w *WebAdvisor) listSections(token, courseId string, sectionIds []string) (
 	}
 
 	return results, nil
+}
+
+func (w *WebAdvisor) GetAvailableSeats(ctx context.Context, section gmc.Section) (uint, error) {
+	token, err := w.getToken(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get request verification token: %w", err)
+	}
+
+	courseID, sectionIDs, err := w.searchCourses(ctx, token, section)
+	if err != nil {
+		return 0, fmt.Errorf("failed to search for course: %w", err)
+	}
+
+	webAdvisorSections, err := w.listSections(ctx, token, courseID, sectionIDs)
+	if err != nil {
+		return 0, fmt.Errorf("failed to list sections: %w", err)
+	}
+
+	for _, webAdvisorSection := range webAdvisorSections {
+		if webAdvisorSection.Section.Number == section.Code && webAdvisorSection.Section.TermId == section.Term {
+			return webAdvisorSection.Section.Available, nil
+		}
+	}
+
+	return 0, fmt.Errorf("section not found")
 }

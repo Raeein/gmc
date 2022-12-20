@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Raeein/gmc/firestore"
 	"github.com/Raeein/gmc/mongodb"
+	"github.com/Raeein/gmc/register"
 	"github.com/Raeein/gmc/webadvisor"
 	"log"
 	"net/http"
@@ -13,16 +15,20 @@ import (
 )
 
 type Service struct {
+	ctx               context.Context
 	server            *http.Server
 	webadvisorService webadvisor.WebAdvisor
+	firestoreService  firestore.Service
 	mongoService      mongodb.Logger
 }
 
-func New(port string, wa webadvisor.WebAdvisor, ms mongodb.Logger) Service {
+func New(ctx context.Context, wa webadvisor.WebAdvisor, fs firestore.Service, ms mongodb.Logger, port string) Service {
 	localPort := fmt.Sprintf(":%s", port)
 	return Service{
+		ctx:               ctx,
 		server:            &http.Server{Addr: localPort},
 		webadvisorService: wa,
+		firestoreService:  fs,
 		mongoService:      ms,
 	}
 }
@@ -80,7 +86,8 @@ func (s Service) register(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		fmt.Println("It was a post")
-		err := validateRegistration(&s.webadvisorService, r.Body)
+		registrationService := register.New(s.ctx, s.webadvisorService, s.firestoreService)
+		err := registrationService.ValidateRegister(r.Body)
 		if err != nil {
 			log.Println(err)
 			rw.WriteHeader(http.StatusBadRequest)
