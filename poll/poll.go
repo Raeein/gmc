@@ -48,7 +48,7 @@ func (t Trigger) Trigger(ctx context.Context) {
 			return
 		}
 
-		log.Printf("%d available seats found for %s", available, section)
+		log.Printf("%d available seats found for %+v", available, section)
 
 		if available == 0 {
 			continue

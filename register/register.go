@@ -73,7 +73,7 @@ func (r RegisterService) Register(ctx context.Context, section gmc.Section, user
 	}
 
 	if err := r.firestoreService.AddWatcher(ctx, section, user); err != nil {
-		return fmt.Errorf("failed to persist %s to %s: %w", user, section, err)
+		return fmt.Errorf("failed to persist %s to %+v: %w", user, section, err)
 	}
 
 	return nil

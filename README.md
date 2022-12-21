@@ -4,8 +4,6 @@
 gmc is a full stack app written in go and vanilla javascript that sends you an email when there is a spot available in a course you want to take.
 During course selection windows you can find the website running at https://gmc.raeeinbagheri.com
 
-![Screen shot of the landing page](./images/img.png)
-
 # Features
 
 - Sends you an email when there is a spot so you dont have to email greg each semester

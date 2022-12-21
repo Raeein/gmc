@@ -70,7 +70,4 @@ func main() {
 	}()
 
 	s.Start(ctx, cfg.Server.Port)
-	//u := gmc.User{"raeein@aol.com", "Raeein"}
-	//email.Send(u, []string{"Java", "Python"}, cfg.Smtp.Host, cfg.Smtp.Port, cfg.Smtp.From, cfg.Smtp.Password)
-	//p := &gmc.User{"jason@me.com", "hi"}
 }

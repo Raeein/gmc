@@ -1,11 +1,27 @@
-body {
-    margin:0;
-    padding:0;
-    height:100%;
+.main-body {
+    background-image: url('../images/bg.jpg');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    isolation: isolate;
 }
 
-form {
-    text-align: center;
+.main-body::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: cornflowerblue;
+    opacity: 0.7;
+}
+
+.full-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    overflow: auto;
 }
 
 footer {
