@@ -9,7 +9,7 @@ RUN go mod download
 RUN go build -o /app/gmc cmd/gmc/main.go
 
 # Run stage
-FROM alpine:3.17
+FROM alpine:3
 WORKDIR /app
 COPY --from=builder /app/ .
 
